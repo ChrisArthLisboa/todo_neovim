@@ -1,12 +1,13 @@
 
 local db_fun = require("todo_nvim.db_functions")
-DB_PATH = vim.fn.stdpath("data") .. "/todo_nvim"
+DB_PATH = vim.fn.stdpath("config") .. "/todo_nvim"
 
 local M = {}
 
 local function setup()
 
-    db_fun.setup_db(DB_PATH .. "/todo.db")
+    
+    db_fun.setup_db(DB_PATH)
 
 end
 

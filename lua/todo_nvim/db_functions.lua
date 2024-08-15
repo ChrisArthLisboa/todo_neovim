@@ -1,20 +1,21 @@
 
 -- import the sqlite3 module
 local sqlite = require("ljsqlite3")
-local db_path = vim.fn.stdpath("data") .. "/todo_nvim"
+local db_path
 
 local M = {}
 
 
 local function setup_db(db_path_setup)
 
-    if vim.fn.filereadable(db_path_setup) == 0 then
-        vim.fn.mkdir(vim.fn.stdpath("data") .. "/todo_nvim", "p")
-        vim.fn.writefile({}, db_path_setup .. "/todo.db")
+    if vim.fn.filereadable(db_path_setup .. "/todo.db") == 0 then
+        vim.fn.mkdir(db_path_setup, "p")
+
+        local file = io.open(db_path_setup .. "/todo.db", "w+")
     end
 
-    local db_todo = sqlite.open(db_path_setup)
-
+    db_path = db_path_setup
+    local db_todo = sqlite.open(db_path_setup .. "/todo.db")
 
     db_todo:exec("create table if not exists tasks (id integer primary key, name text, description text, status text default 'to do', project_code varchar(20) default 'none');")
 
@@ -52,7 +53,7 @@ end
 -- This function is for test purposes only
 local function show_tasks()
     local tasks = fetch_tasks()
-    for i, task in ipairs(tasks) do 
+    for i, task in ipairs(tasks) do
         print(i .. ". " .. task.name .. " - " .. task.description .. " - " .. task.status .. " - " .. task.project)
     end
 end
@@ -60,11 +61,8 @@ end
 local function check_for_proj(project_path)
 
     local db = sqlite.open(db_path .. "/todo.db")
-
     local proj = db:prepare("select * from projects where project_code = \'"..project_path.."\';")
-
     local row = proj:step()
-
     db:close()
 
     if row then
@@ -82,7 +80,8 @@ local function add_task()
 
     local name
     local description
-    local project_path = vim.fn.getcwd()
+    local project_path = vim.fs.root(0, ".git")
+
 
     if not check_for_proj(project_path) then
         vim.fn.printf("Project not found, creating a new project")
@@ -92,44 +91,39 @@ local function add_task()
 
     repeat
         name = vim.fn.input("Enter the name of the task: ")
-
         description = vim.fn.input("Enter the description of the task: ")
-
     until (name ~= "" and description ~= "")
 
     db:exec("INSERT INTO tasks (name, description, project_code) VALUES (\'"..name.."\', \'"..description.."\', \'"..project_path.."\');")
-
-    print("Task added successfully")
-
     db:close()
+
+    vim.fn.printf("\nTask %s added succesfuly", name)
+
 
 end
 
 local function remove_task()
 
     local db = sqlite.open(db_path .. "/todo.db")
-
     local name = vim.fn.input("Enter the name of the task to remove: ")
 
     db:exec("DELETE FROM tasks WHERE name = \'"..name.."\'")
-
-    print("Task removed successfully")
-
     db:close()
+
+    vim.fn.printf("\nTask removed successfully")
 
 end
 
 local function complete_task()
 
     local db = sqlite.open(db_path .. "/todo.db")
-
     local name = vim.fn.input("Enter the name of the task to complete: ")
 
     db:exec("UPDATE tasks SET status = 'complete' WHERE name = \'"..name.."\'")
+    db:close()
 
     print("\nTask completed successfully")
 
-    db:close()
 
 end
 
