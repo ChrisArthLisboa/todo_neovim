@@ -1,6 +1,8 @@
 
 -- import the sqlite3 module
 local sqlite = require("ljsqlite3")
+local ui = require("todo_nvim.ui")
+
 local db_path
 
 local M = {}
@@ -52,6 +54,7 @@ end
 
 -- This function is for test purposes only
 local function show_tasks()
+    ui.draw_window()
     local tasks = fetch_tasks()
     for i, task in ipairs(tasks) do
         print(i .. ". " .. task.name .. " - " .. task.description .. " - " .. task.status .. " - " .. task.project)

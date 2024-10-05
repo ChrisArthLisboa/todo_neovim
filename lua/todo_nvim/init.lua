@@ -6,7 +6,6 @@ local M = {}
 
 local function setup()
 
-    
     db_fun.setup_db(DB_PATH)
 
 end
